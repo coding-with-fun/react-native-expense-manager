@@ -1,18 +1,33 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
     KeyboardAvoidingView,
     ScrollView,
     StyleSheet,
     View,
 } from "react-native";
-import { Button, TextInput } from "react-native-paper";
+import { Button, HelperText, TextInput } from "react-native-paper";
 
 const AuthScreen = ({ navigation, screenName }) => {
+    const [userData, setUserData] = useState({
+        userEmail: "",
+        userEmailError: false,
+        userPassword: "",
+        userPasswordError: false,
+        userConfirmPassword: "",
+        userConfirmPasswordError: false,
+    });
+
     const ref_password_input = useRef();
     const ref_confirm_password_input = useRef();
 
     const handleChangeScreen = () => {
         navigation.replace(screenName === "Sign Up" ? "Sign In" : "Sign Up");
+    };
+
+    const handleChangeInput = (data, field) => {
+        setUserData({
+            [`user${field}`]: data,
+        });
     };
 
     const handleAuthUser = () => {
@@ -29,18 +44,29 @@ const AuthScreen = ({ navigation, screenName }) => {
                     <View style={styles.inputContainer}>
                         <TextInput
                             autoFocus
+                            error={userData.userEmailError}
                             label="Email"
                             mode="outlined"
                             keyboardType="email-address"
                             autoCompleteType="email"
                             textContentType="emailAddress"
                             autoCapitalize="none"
+                            value={userData.userEmail}
+                            onChangeText={(text) =>
+                                handleChangeInput(text, "Email")
+                            }
                             returnKeyType="next"
                             onSubmitEditing={() =>
                                 ref_password_input.current.focus()
                             }
                             style={styles.input}
                         />
+                        <HelperText
+                            type="error"
+                            visible={userData.userEmailError}
+                        >
+                            Email address is invalid!
+                        </HelperText>
 
                         <TextInput
                             secureTextEntry
@@ -49,6 +75,10 @@ const AuthScreen = ({ navigation, screenName }) => {
                             autoCompleteType="password"
                             textContentType="password"
                             autoCapitalize="none"
+                            value={userData.userPassword}
+                            onChangeText={(text) =>
+                                handleChangeInput(text, "Password")
+                            }
                             ref={ref_password_input}
                             returnKeyType={
                                 screenName === "Sign Up" ? "next" : "default"
@@ -69,6 +99,10 @@ const AuthScreen = ({ navigation, screenName }) => {
                                 autoCompleteType="password"
                                 textContentType="password"
                                 autoCapitalize="none"
+                                value={userData.userConfirmPassword}
+                                onChangeText={(text) =>
+                                    handleChangeInput(text, "ConfirmPassword")
+                                }
                                 ref={ref_confirm_password_input}
                                 style={styles.input}
                             />
@@ -139,7 +173,7 @@ const styles = StyleSheet.create({
         width: 300,
     },
     input: {
-        marginBottom: 20,
+        // marginBottom: 20,
         backgroundColor: "#fff",
     },
     buttonContainer: {
