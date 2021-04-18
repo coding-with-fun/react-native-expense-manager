@@ -16,7 +16,7 @@ const AuthScreen = ({ navigation, screenName }) => {
     };
 
     const handleAuthUser = () => {
-        console.log("object");
+        navigation.replace("Home");
     };
 
     return (
