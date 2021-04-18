@@ -6,16 +6,23 @@ import {
     View,
 } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
+import {
+    checkPassword,
+    comparePassword,
+    validateEmail,
+} from "../utils/validateData";
 
 const AuthScreen = ({ navigation, screenName }) => {
-    const [userData, setUserData] = useState({
+    const initialState = {
         userEmail: "",
         userEmailError: false,
         userPassword: "",
         userPasswordError: false,
+        showUserPasswordHint: false,
         userConfirmPassword: "",
         userConfirmPasswordError: false,
-    });
+    };
+    const [userData, setUserData] = useState(initialState);
 
     const ref_password_input = useRef();
     const ref_confirm_password_input = useRef();
@@ -25,13 +32,47 @@ const AuthScreen = ({ navigation, screenName }) => {
     };
 
     const handleChangeInput = (data, field) => {
-        setUserData({
+        setUserData((userInput) => ({
+            ...userInput,
             [`user${field}`]: data,
-        });
+        }));
     };
 
     const handleAuthUser = () => {
-        navigation.replace("Home");
+        let userEmailError = !validateEmail(userData.userEmail);
+        let userPasswordError =
+            !checkPassword(userData.userPassword) ||
+            (screenName === "Sign Up" &&
+                comparePassword(
+                    userData.userPassword,
+                    userData.userConfirmPassword
+                ));
+        let showUserPasswordHint =
+            userPasswordError && userData.userPassword.includes("@");
+        let userConfirmPasswordError =
+            screenName === "Sign Up" &&
+            comparePassword(
+                userData.userPassword,
+                userData.userConfirmPassword
+            );
+
+        setUserData((userInput) => ({
+            ...userInput,
+            userEmailError,
+            userPasswordError,
+            showUserPasswordHint,
+            userConfirmPasswordError,
+        }));
+
+        if (
+            !userEmailError &&
+            !userPasswordError &&
+            !showUserPasswordHint &&
+            !userConfirmPasswordError
+        ) {
+            setUserData(initialState);
+            navigation.replace("Home");
+        }
     };
 
     return (
@@ -42,70 +83,107 @@ const AuthScreen = ({ navigation, screenName }) => {
             >
                 <View style={styles.bodyContainer}>
                     <View style={styles.inputContainer}>
-                        <TextInput
-                            autoFocus
-                            error={userData.userEmailError}
-                            label="Email"
-                            mode="outlined"
-                            keyboardType="email-address"
-                            autoCompleteType="email"
-                            textContentType="emailAddress"
-                            autoCapitalize="none"
-                            value={userData.userEmail}
-                            onChangeText={(text) =>
-                                handleChangeInput(text, "Email")
-                            }
-                            returnKeyType="next"
-                            onSubmitEditing={() =>
-                                ref_password_input.current.focus()
-                            }
-                            style={styles.input}
-                        />
-                        <HelperText
-                            type="error"
-                            visible={userData.userEmailError}
-                        >
-                            Email address is invalid!
-                        </HelperText>
+                        <View style={styles.inputField}>
+                            <TextInput
+                                autoFocus
+                                error={userData.userEmailError}
+                                label="Email"
+                                mode="outlined"
+                                keyboardType="email-address"
+                                autoCompleteType="email"
+                                textContentType="emailAddress"
+                                autoCapitalize="none"
+                                value={userData.userEmail}
+                                onChangeText={(text) =>
+                                    handleChangeInput(text, "Email")
+                                }
+                                returnKeyType="next"
+                                onSubmitEditing={() =>
+                                    ref_password_input.current.focus()
+                                }
+                                style={styles.input}
+                            />
+                            <HelperText
+                                type="error"
+                                visible={userData.userEmailError}
+                            >
+                                Email address is invalid!
+                            </HelperText>
+                        </View>
 
-                        <TextInput
-                            secureTextEntry
-                            label="Password"
-                            mode="outlined"
-                            autoCompleteType="password"
-                            textContentType="password"
-                            autoCapitalize="none"
-                            value={userData.userPassword}
-                            onChangeText={(text) =>
-                                handleChangeInput(text, "Password")
-                            }
-                            ref={ref_password_input}
-                            returnKeyType={
-                                screenName === "Sign Up" ? "next" : "default"
-                            }
-                            onSubmitEditing={() =>
-                                screenName === "Sign Up"
-                                    ? ref_confirm_password_input.current.focus()
-                                    : null
-                            }
-                            style={styles.input}
-                        />
-
-                        {screenName === "Sign Up" && (
+                        <View style={styles.inputField}>
                             <TextInput
                                 secureTextEntry
-                                label="Confirm Password"
+                                error={userData.userPasswordError}
+                                label="Password"
                                 mode="outlined"
                                 autoCompleteType="password"
                                 textContentType="password"
                                 autoCapitalize="none"
-                                value={userData.userConfirmPassword}
+                                value={userData.userPassword}
                                 onChangeText={(text) =>
-                                    handleChangeInput(text, "ConfirmPassword")
+                                    handleChangeInput(text, "Password")
                                 }
-                                ref={ref_confirm_password_input}
+                                ref={ref_password_input}
+                                returnKeyType={
+                                    screenName === "Sign Up"
+                                        ? "next"
+                                        : "default"
+                                }
+                                onSubmitEditing={() =>
+                                    screenName === "Sign Up"
+                                        ? ref_confirm_password_input.current.focus()
+                                        : handleAuthUser()
+                                }
                                 style={styles.input}
                             />
+
+                            <HelperText
+                                type={
+                                    userData.userPasswordError
+                                        ? "error"
+                                        : "info"
+                                }
+                            >
+                                {userData.userPasswordError &&
+                                    "Password is invalid! \n\n"}
+                                {userData.showUserPasswordHint &&
+                                    'Hint - Try adding other symbols along with "@"\n\n'}
+                                {"- Min length - 8 \n"}
+                                {"- Min lowercase character - 1 \n"}
+                                {"- Min uppercase character - 1 \n"}
+                                {"- Min numeric character - 1 \n"}
+                                {"- Min symbol - 1 \n"}
+                            </HelperText>
+                        </View>
+
+                        {screenName === "Sign Up" && (
+                            <View style={styles.inputField}>
+                                <TextInput
+                                    secureTextEntry
+                                    error={userData.userConfirmPasswordError}
+                                    label="Confirm Password"
+                                    mode="outlined"
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    autoCapitalize="none"
+                                    value={userData.userConfirmPassword}
+                                    onChangeText={(text) =>
+                                        handleChangeInput(
+                                            text,
+                                            "ConfirmPassword"
+                                        )
+                                    }
+                                    ref={ref_confirm_password_input}
+                                    style={styles.input}
+                                />
+                                <HelperText
+                                    type="error"
+                                    visible={userData.userConfirmPasswordError}
+                                >
+                                    Password is invalid!
+                                </HelperText>
+                            </View>
                         )}
                     </View>
 
@@ -164,7 +242,8 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         flexGrow: 1,
-        marginTop: 100,
+        paddingTop: 100,
+        paddingBottom: 40,
     },
     bodyContainer: {
         alignItems: "center",
@@ -173,8 +252,10 @@ const styles = StyleSheet.create({
         width: 300,
     },
     input: {
-        // marginBottom: 20,
         backgroundColor: "#fff",
+    },
+    inputField: {
+        marginBottom: 15,
     },
     buttonContainer: {
         flexDirection: "row",
