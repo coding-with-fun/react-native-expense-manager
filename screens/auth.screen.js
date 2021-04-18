@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useEffect } from "react";
 import {
     KeyboardAvoidingView,
     ScrollView,
@@ -26,6 +27,11 @@ const AuthScreen = ({ navigation, screenName }) => {
 
     const ref_password_input = useRef();
     const ref_confirm_password_input = useRef();
+
+    // TODO: Add condition
+    useEffect(() => {
+        navigation.replace("Home");
+    }, []);
 
     const handleChangeScreen = () => {
         navigation.replace(screenName === "Sign Up" ? "Sign In" : "Sign Up");
