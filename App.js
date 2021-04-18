@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { Provider as PaperProvider } from "react-native-paper";
-import AuthScreen from "./screens/AuthScreen";
+import AuthScreen from "./screens/auth.screen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
